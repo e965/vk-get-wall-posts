@@ -4,7 +4,7 @@
 
 * Установи [Node.js](https://nodejs.org/en/download/) и [Git](https://git-scm.com/downloads)
 * Создай директорию проекта и зайди в неё через терминал/командлайн
-* Введи `git clone https://github.com/tehcojam/get-vk-user-posts .`, подожди окончания загрузки
+* Введи `git clone https://github.com/tehcojam/vk-get-wall-posts .`, подожди окончания загрузки
 * Введи `npm install` для установки зависимостей проекта
 * После окончания установки, открой файл `index.js` в любом удобном текстовом редакторе
 * Авторизуйся [здесь](https://tehcojam.github.io/vk-feed/), и запиши полный URL (будет что-то вроде `https://oauth.vk.com/blank.html#access_token=...`) внутри кавычек в строке `13`, или же достань из URL токен и вставьте в кавычки на строке `17`
