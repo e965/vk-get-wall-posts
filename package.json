@@ -1,0 +1,16 @@
+{
+  "name": "vk-get-wall-posts",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Dmitry <dmitry@cojam.ru> (https://e965.ru)",
+  "license": "MIT",
+  "dependencies": {
+    "death": "^1.1.0",
+    "vk-io": "^4.0.0-rc.6"
+  }
+}
