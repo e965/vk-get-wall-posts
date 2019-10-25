@@ -7,14 +7,15 @@ let { VK } = require('vk-io')
 let onDeath = require('death')
 
 let GROUP_ID = 0
+let APP_ID = 6703807
 
 let URL_ = new URL('')
 
-let TOKEN = URL ?
+let TOKEN = URL_ ?
 	new URLSearchParams(URL_.hash.substring(1)).get('access_token')
 	: ''
 
-let vk = new VK({ appId: 6703807, token: TOKEN })
+let vk = new VK({ appId: APP_ID, token: TOKEN })
 
 let database = {}
 
