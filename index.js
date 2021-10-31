@@ -1,93 +1,65 @@
-'use strict'
+import { API as VKAPI, createCollectIterator } from 'vk-io'
+import onDeath from 'death'
 
-let fs = require('fs')
-let path = require('path')
+import { getTokenFromVkURL } from './utilities/vk-utilities.js'
+import { writeDataToFile } from './utilities/files-utilities.js'
 
-let { VK } = require('vk-io')
-let onDeath = require('death')
+const GROUP_ID = 0
+const APP_ID = 6703807
 
-let GROUP_ID = 0
-let APP_ID = 6703807
+const URL_WITH_TOKEN = ''
 
-let URL_ = new URL('')
+const API = new VKAPI({ appId: APP_ID, token: getTokenFromVkURL(URL_WITH_TOKEN) })
 
-let TOKEN = URL_ ?
-	new URLSearchParams(URL_.hash.substring(1)).get('access_token')
-	: ''
-
-let vk = new VK({ appId: APP_ID, token: TOKEN })
-
-let database = {}
+const DATABASE = {}
 
 let postsCount = 0
 let postsParsed = 0
 
-let getFileName = () => {
-	let date = new Date()
-
-	let dir = './db'
-
-	if (!fs.existsSync(dir)) fs.mkdirSync(dir)
-
-	let filePath = path.join(
-		dir,
-		`${GROUP_ID}_${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${(date / 1000).toFixed(0)}.json`
-	)
-
-	return filePath
+const writeFile = () => {
+	writeDataToFile('./db', GROUP_ID, DATABASE)
 }
 
-let writeFile = () => fs.writeFileSync(getFileName(), JSON.stringify(database, null, '\t'))
-
-let printProgress = (progress, end) => {
-    process.stdout.clearLine()
-    process.stdout.cursorTo(0)
-    process.stdout.write(`Обработано записей: ${progress} из ${end}`)
+const printProgress = (progress, end) => {
+	process.stdout.clearLine()
+	process.stdout.cursorTo(0)
+	process.stdout.write(`Обработано записей: ${progress} из ${end}`)
 }
 
-let getWall = async ({ count = 1, offset = 0 }) => {
-	return await vk.api.wall.get({
-		owner_id: -GROUP_ID,
-		count: count,
-		offset: offset
-	})
-}
+const getWallIterator = createCollectIterator({
+	api: API,
+	method: 'wall.get',
+	params: {
+		owner_id: -GROUP_ID
+	},
+	countPerRequest: 200,
+})
 
-let fun = ({ count = 100, offset = 0 }) => {
-	getWall({ count: count, offset: offset })
-
-		.then(r => {
-			r.items.forEach(item => {
-				if (!(item.from_id in database)) {
-					database[Number(item.from_id)] = []
+const fun = async () => {
+	try {
+		for await (const chunk of getWallIterator) {
+			chunk.items.forEach(item => {
+				if (!(item.from_id in DATABASE)) {
+					DATABASE[Number(item.from_id)] = []
 				}
 
-				database[item.from_id].push(item.id)
+				DATABASE[item.from_id].push(item.id)
 			})
 
-			if (offset == 0) {
-				postsCount = r.count
-			}
+			postsCount = chunk.total
 
-			offset += count
+			postsParsed += chunk.items.length
 
-			postsParsed += r.items.length
-
-			if (r.items.length != 0) {
+			if (chunk.items.length !== 0) {
 				printProgress(postsParsed - 1, postsCount)
-				fun({ count: count, offset: offset })
-			} else {
-				writeFile()
 			}
-		})
-
-		.catch(e => {
-			console.log('\nВыполнение скрипта прервано.')
-			writeFile()
-		})
+		}
+	} finally {
+		writeFile()
+	}
 }
 
-fun({})
+fun()
 
 onDeath(() => {
 	console.log('\nВыполнение скрипта прервано.')
